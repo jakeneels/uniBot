@@ -12,7 +12,8 @@ const helpMsg = `Welcome to Unibot:\n
 !flip or !f - random coin flip.\n
 !scrim or !s - start a scrim with all the players in Cheese Cake.\n
 !done or !d - read end match image (1080 required) attachment parse and update players combat score.\n
-!elo - reply with players average elo.\n`;
+!elo - reply with players average elo.\n
+!setign your in game name here`;
 
 client.once('ready', async () => db.init());
 
@@ -30,6 +31,7 @@ client.on('message', async message => {
         } catch (e) {
             console.log(e)
         }
+        else if (content.startsWith('!helpign') || content.startsWith('!ignhelp')) return message.reply(`please type: !setign {your in game name here without the brackets}`);
         else if (content.startsWith('!scrim') || content.startsWith('!s')) try {
             await scrim(message);
         } catch (e) {
@@ -69,6 +71,11 @@ client.on('message', async message => {
 });
 
 const addMatch = async (message) => {
+    const liveMatchExists = await db.getInProgressMatch();
+    console.log('liveMatch::: ', liveMatchExists, message.content);
+    if (!liveMatchExists && !message.content.contains('--f')){
+        return message.channel.send('There is no running match!');
+    }
     let response;
     for (let [sf, attachment] of message.attachments) {
         console.log(attachment);
@@ -170,7 +177,7 @@ const totalTeamElo = async (teamArr) => {
     let totalElo = 0;
     const averages = await Promise.all(teamArr.map(player => {
         const average = db.getAverageScore(player.id);
-        return average ? average : 125; //if the player is new give them a 125 cmbt score
+        return average ? average : 140; //if the player is new give them a 125 cmbt score
     }));
     averages.forEach(player => totalElo += player.averageScore);
     return totalElo;

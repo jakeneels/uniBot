@@ -40,7 +40,6 @@ const insertPlayerIfNotExists = async (memberId, name, hand_elo = 50) => {
 const addMatch = async (id, playerId, combatScore, win = 0) => {
     const stmt = await db.prepare(`INSERT INTO matches(id, player_id, combat_score, win) VALUES (?,?,?,?)`);
     await stmt.run(id, playerId, combatScore, win);
-    // await stmt.run(stmt);
     return stmt.finalize();
 };
 
@@ -69,7 +68,7 @@ const getAverageScore = async (playerId) => {
 const getLeaderboard = async () => {
     return db.all(`SELECT p.name, avg(combat_score) averageScore from matches
     JOIN players p on matches.player_id = p.id
-    GROUP BY p.name ORDER BY averageScore desc LIMIT 6`);
+    GROUP BY p.name ORDER BY averageScore desc LIMIT 20`);
 };
 
 const getEveryonesAverageScore = async (IGNs) => {
@@ -123,8 +122,10 @@ const getInProgressMatch = async () => db.all(`SELECT * FROM in_progress_match`)
 
 const deleteInProgressMatch = async () => { // this table is essentially a cache it only holds 1 match at a time
     const stmt = await db.prepare(`DELETE FROM in_progress_match`);
-    await stmt.run(stmt);
-    return stmt.finalize();
+    const result = await stmt.run(stmt);
+    await stmt.finalize();
+    console.log('THIS IS THE PART', result)
+    return result.changes > 0;
 };
 
 module.exports = {
